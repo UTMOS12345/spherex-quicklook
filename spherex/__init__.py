@@ -1,10 +1,12 @@
 """
-spherex - data side of the Planet X / SPHEREx tool.
+spherex (distribution: spherex-quicklook) - a quick-look library for NASA SPHEREx images.
 
-Your teammate's Streamlit app only needs:
+The stable, documented interface is spherex.api (docs/API.md):
 
-    from spherex import (parse_target, at_time, find_frames, get_cutout, clean_frame,
-                         make_epochs, difference, gaia_overlay, light_curve, spectrum)
+    from spherex import api
+    gif = api.flipbook("WISE 0855", detector="D6")
+
+The names below and the modules are internal: they may change in any release.
 
 Lesson -> module:
     1  FITS + WCS              -> fitsio.py
