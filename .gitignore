@@ -1,0 +1,20 @@
+# Python
+build/
+dist/
+*.egg-info/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ipynb_checkpoints/
+.venv/
+venv/
+env/
+
+# Data: a cache folder is downloaded and regenerable (GB of FITS cutouts). Never tracked.
+*.fits
+*.fits.gz
+cache/
+out/
+
+# OS
+.DS_Store

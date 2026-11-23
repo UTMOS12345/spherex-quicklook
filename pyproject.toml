@@ -1,0 +1,58 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spherex-quicklook"
+version = "1.0.0"
+description = "Quick-look library for NASA SPHEREx images: per-visit stacks, difference images, light curves, spectra and Gaia/CatWISE overlays from the IRSA archive"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
+authors = [
+    { name = "UTMOS12345" },
+    { name = "Jumanov Shavkat" },
+]
+keywords = ["astronomy", "SPHEREx", "NASA", "IRSA", "infrared", "proper motion", "light curve",
+            "spectrum", "astropy"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Education",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Astronomy",
+    "Topic :: Scientific/Engineering :: Visualization",
+]
+# Lower bounds, not pins: the newest versions need Python 3.12, older ones keep 3.10 and 3.11
+# working. The app (paramost) pins the exact versions it is tested with.
+dependencies = [
+    "astropy>=6.0",
+    "astroquery>=0.4.7",
+    "reproject>=0.13",
+    "photutils>=1.13",
+    "numpy>=1.26",
+    "scipy>=1.11",
+    "pyerfa>=2.0.1",
+    "matplotlib>=3.8",
+    "platformdirs>=3.0",
+    "requests>=2.28",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=8"]
+
+[project.urls]
+Homepage = "https://github.com/UTMOS12345/spherex-quicklook"
+Repository = "https://github.com/UTMOS12345/spherex-quicklook"
+Issues = "https://github.com/UTMOS12345/spherex-quicklook/issues"
+Changelog = "https://github.com/UTMOS12345/spherex-quicklook/blob/main/CHANGELOG.md"
+"App (SPHEREx Flipbook)" = "https://github.com/UTMOS12345/spherex_project"
+
+[tool.setuptools]
+packages = ["spherex"]

@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "spherex-quicklook: a quick-look library for NASA SPHEREx images"
+abstract: >-
+  Per-visit stacks, difference images, light curves and 102-channel spectra
+  measured from NASA SPHEREx images in the IRSA archive, with Gaia DR3 and
+  CatWISE2020 overlays. The library behind the SPHEREx Flipbook app (paramost),
+  built for the NASA Space Apps Challenge 2026 (Planet X and SPHEREx).
+type: software
+authors:
+  - given-names: Maksudali
+    family-names: Imomaliyev
+    alias: UTMOS12345
+
+  - given-names: Shavkat
+    family-names: Jumanov
+    alias: ShavkatJumanov
+version: 1.0.0
+date-released: "2026-11-23"
+license: BSD-3-Clause
+repository-code: "https://github.com/UTMOS12345/spherex-quicklook"
+url: "https://github.com/UTMOS12345/spherex-quicklook"
+keywords:
+  - astronomy
+  - SPHEREx
+  - NASA
+  - IRSA
+  - infrared
+  - astropy

@@ -245,20 +245,6 @@ def test_default_cap_and_clear(fc, monkeypatch, tmp_path):
     assert framecache.info()["entries"] == 0 and cutout.exists()
 
 
-def test_cli_cache_info_and_clear(fc, monkeypatch, capsys):
-    from paramost import cli
-    monkeypatch.setattr(cli, "_use_cache_dir", lambda path: None)
-    _fill(2)
-    import spherex.net
-    monkeypatch.setattr(spherex.net, "CACHE_ROOT", framecache.FRAME_DIR.parent)
-    assert cli.main(["cache-info"]) == 0
-    out = capsys.readouterr().out
-    assert "frames_proc/" in out and "2 aligned frames" in out
-    assert cli.main(["cache-clear", "frames"]) == 0
-    assert "2 aligned frames" in capsys.readouterr().out
-    assert framecache.info()["entries"] == 0
-
-
 def test_at_times_matches_at_time_bit_for_bit():
     """targets.at_times (one call for many dates) == at_time per date, for movers and fixed stars."""
     import astropy.units as u
