@@ -12,14 +12,18 @@ unknown detector, no data), so the app can show it with st.error(str(e)).
 Slow on first use for a new target (downloads); fast afterwards (disk cache + memory cache).
 The slow functions take progress=None: an optional callback progress(stage, done, total) that
 is told how far the work has got (see spherex.progress). It never changes a result.
+
+The library never chooses a matplotlib backend: that is the caller's decision. A script on a
+machine without a display gets Agg from matplotlib itself; an app that draws in threads (a web
+server, Streamlit) should select Agg before importing this module (MPLBACKEND=Agg or
+matplotlib.use("Agg")). The worker processes the library starts itself always use Agg.
 """
 import os
 import tempfile
 
 import numpy as np
-import matplotlib
-matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_agg import FigureCanvasAgg
 from matplotlib.colors import Normalize
 import astropy.units as u
 from astropy.coordinates import SkyCoord
@@ -457,6 +461,7 @@ def _draw_pictures(images, markers, titles, norm, cmap, progress=None):
     import io
     out = []
     fig, ax = plt.subplots(figsize=(6, 6))
+    FigureCanvasAgg(fig)        # measured below with an Agg renderer, whatever the caller's backend
     report(progress, DRAWING, 0, len(images))
     im = ring = title_text = None
     try:

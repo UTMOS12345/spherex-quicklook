@@ -1,7 +1,5 @@
 """Lesson 7 - difference images (epoch A minus epoch B) and the flipbook GIF."""
 import numpy as np
-import matplotlib
-matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation, PillowWriter
 from astropy.time import Time

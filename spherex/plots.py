@@ -1,7 +1,5 @@
 """Nicer pictures for the app: the light curve, one panel per visit."""
 import numpy as np
-import matplotlib
-matplotlib.use("Agg")
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 from astropy.time import Time
