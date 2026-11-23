@@ -1,8 +1,10 @@
-# spherex.api: guide for the web app
+# spherex.api: guide for apps and scripts
 
-The app only needs `from spherex import api, set_style`. `cache/` is found next to the
-`spherex/` package wherever Python starts (`SPHEREX_CACHE=/path` overrides it). The working example
-is the app itself, `paramost/app.py` (`python -m paramost`).
+An app needs only `from spherex import api`: everything it uses is in this guide, and
+`spherex.api` is the library's stable interface (see "Stability" in the README). The cache is
+`SPHEREX_CACHE` if set, else the per-user cache folder (`api.cache_root()` says which). The
+working example is the app built on it, [SPHEREx Flipbook](https://github.com/UTMOS12345/spherex_project)
+(`paramost/app.py`).
 
 ## For the app
 
@@ -108,7 +110,7 @@ are not affected.
 | `api.TIME_STEPS` | `{"per visit": 60, "monthly": 30, "weekly": 7, "every frame": 0}`: labels and `days` values for a time-step picker. |
 | `api.MAX_SAFE_TOL` | 0.05: light curves with a wider wavelength window get a warning. |
 | `api.WL_SPREAD_UM` | 0.01: light curves whose usable points differ in wavelength by more than this get a warning. |
-| `set_style(dark=False)` | from `spherex`: one look for every figure; call once, `dark=True` for a dark page. |
+| `api.set_style(dark=False)` | one look for every figure; call once, `dark=True` for a dark page (also `spherex.set_style`). |
 
 ## Functions
 
@@ -125,6 +127,8 @@ are not affected.
 | Spectrum | `api.spectrum_figure(text, visit=-1, all_visits=False, progress=None)` | (figure, table) |
 | Flags | `api.flags_figure(text, detector="D2", visit=-1, frame=0)` | (figure, table) |
 | Molecule markers | `api.molecule_bands()` | list of dicts (plain data, no plotting); see "Molecule bands" |
+| Cached files | `api.target_files(text)` | dict: `name` (its cache name), `images` (cutout paths), `frame_list`, `results` (saved-results folder), `cones` (Gaia / CatWISE files), `n_images`, `size_bytes`; local files only |
+| Forget a target | `api.remove_target(text)` | bytes freed: deletes its images, frame list, saved results and catalogue cones |
 
 Show a figure with `st.pyplot(fig)` and then `plt.close(fig)`; a table with
 `st.dataframe(table.to_pandas())`; GIF bytes with `st.image(gif)`.
@@ -136,6 +140,28 @@ the `a` / `b` of kind "pair", `overlay_figure(..., visit=i)`, and frame i of `fl
 (and, for the videos, the same `pictures`). `detector=None` means D2 unless
 `wl` is given. Example: for R Draconis with D3 the rows are visits 0, 3 and 4 of `api.visits`
 (D3 did not observe it in visits 1, 2 and 5).
+
+## For apps: cache, workers, timing
+
+What an app needs besides the views, so it never has to import the internal modules.
+
+| Call | What it does |
+|---|---|
+| `api.cache_root()` | the cache folder in use (Path); read once, when spherex is first imported |
+| `api.target_files(text)`, `api.remove_target(text)` | see "Functions" |
+| `api.result_key(name)` | folder name of a target's saved results: `cache_root() / "results" / result_key(target_files(text)["name"])` |
+| `api.preload_results(paths)` | read saved-result files (`*.pkl` in that folder) into memory; disk only, never computes -> how many were read |
+| `api.catalogue_names()` | display names of the targets known without a name lookup; each is also its frame list's name, `cache_root() / "frames" / f"{name}.ecsv"` |
+| `api.parse_cutout_name(filename)` | dict of strings `stem`, `ra`, `dec`, `size` for a downloaded image in `cache_root() / "cutouts"`, else None |
+| `api.frame_cache_info()`, `api.clear_frame_cache()` | the cache of cleaned and aligned frames (`frames_proc/`): dict `entries`, `size_bytes`, `max_bytes`, `enabled`, `folder`; clearing returns `(entries, bytes)` and never touches downloads |
+| `api.download_workers()` | how many images are downloaded at once right now (it adapts to the archive) |
+| `api.prestart_workers()`, `api.WORKER_IDLE_S` | start the worker processes in the background (they stop after `WORKER_IDLE_S` seconds idle) |
+| `api.Estimate` | progress callback -> "time left" line; see "Progress" |
+| `api.FEW_FRAMES_NOTE` | the text that ends the title of a few-frames picture |
+| `spherex.__version__` | the library version (also part of every saved result's key) |
+
+The cache folder's layout (`cutouts/`, `frames/`, `frames_proc/`, `gaia/`, `wise/`, `results/`)
+is part of the stable interface: an app may list it, but should change it only through these calls.
 
 ## Inputs
 
@@ -358,14 +384,14 @@ def progress(stage, done, total):
 html = api.player_html("WISE 0855", detector="D6", progress=progress)
 ```
 
-`spherex.progress.Estimate` turns those calls into a line for a progress bar with the time left:
+`api.Estimate` turns those calls into a line for a progress bar with the time left:
 the average time per item so far in the current stage times the items left, shown once at least
 2 items of the stage are done. For downloads it also counts retries and "busy" (HTTP 503)
 replies since the stage began. `update()` returns a dict with `stage`, `count` ("23 / 61"),
 `fraction` (0..1, for `st.progress`), `seconds_left`, `time_left`, `retries`, `busy` and `text`:
 
 ```python
-from spherex.progress import Estimate
+from spherex.api import Estimate
 
 est = Estimate()
 def progress(stage, done, total):
@@ -407,6 +433,6 @@ Catch both: `except ValueError as e: st.warning(str(e))`, then `except Exception
 
 - Ship the `cache/` folder (frames, cutouts, gaia, wise) with the app: the five test targets then
   work without downloads.
-- `python tools/prepare_demo.py` (`paramost render ... --products all --yes`) fills it for the test targets; `api.visits(text, refresh=True)` picks up
+- The app's `paramost render ... --products all --yes` (its `tools/prepare_demo.py`) fills it for the test targets; `api.visits(text, refresh=True)` picks up
   new SPHEREx releases.
-- URL parameters: `app_example.py` reads and writes `?target=WISE+0855&detector=D6&fov=6&view=video&mode=normal`.
+- URL parameters: the app (paramost) reads and writes `?target=WISE+0855&detector=D6&fov=6&view=video&mode=normal`.

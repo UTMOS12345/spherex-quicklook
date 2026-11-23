@@ -40,8 +40,8 @@ from .frames import load_or_find_frames
 from .gaia import gaia_overlay, draw_gaia
 from .photometry import light_curve
 from .plots import (plot_light_curve_simple, plot_spectrum, plot_spectra_visits, wavelength_spread, WL_SPREAD_UM,
-                    THEME, MOLECULES)
-from .progress import report, shifted, SEARCHING, MEASURING, DRAWING
+                    THEME, MOLECULES, set_style)
+from .progress import report, shifted, SEARCHING, MEASURING, DRAWING, Estimate
 from .spectrum import spectrum, spectrum_requests, bin_to_channels, channel_edges
 from .targets import parse_target, at_time, has_pm, known_target, known_near, target_name
 from .text import plural
@@ -1047,3 +1047,70 @@ def flags_figure(text, detector="D2", visit=-1, frame=0):
                          n in BAD_FLAGS) for n, b in sorted(f["bits"].items(), key=lambda kv: kv[1])],
                   names=["flag", "bit", "percent_of_pixels", "masked"])
     return fig, table[table["percent_of_pixels"] > 0]
+
+
+# ------------------------------------------------------------------ for apps: cache, workers, timing
+# What an app needs besides the views, so that it never imports the internal modules.
+# set_style (above, from spherex.plots) and Estimate (spherex.progress) are part of it too.
+
+WORKER_IDLE_S = workers.IDLE_S    # the worker processes stop after this many seconds without work
+
+
+def cache_root():
+    """The cache folder in use -> Path: SPHEREX_CACHE, else the per-user cache folder (named
+    "paramost", see the README). Read once, when spherex is first imported."""
+    from pathlib import Path
+    return Path(net.CACHE_ROOT)
+
+
+def download_workers():
+    """How many cutouts are downloaded at once right now (it adapts to the archive) -> int."""
+    from .download import download_workers as n
+    return n()
+
+
+def frame_cache_info():
+    """The cache of cleaned and aligned frames (frames_proc/) -> dict: entries, size_bytes,
+    max_bytes, enabled, folder (Path)."""
+    from . import framecache
+    return framecache.info()
+
+
+def clear_frame_cache():
+    """Delete the frame cache (never the downloaded images; it is rebuilt when needed)
+    -> (entries, bytes) removed."""
+    from . import framecache
+    return framecache.clear()
+
+
+def prestart_workers():
+    """Start the worker processes in the background now, so the first view that has to clean
+    and align frames does not wait for them. Does nothing with SPHEREX_WORKERS=1."""
+    workers.prestart()
+
+
+def result_key(name):
+    """The folder of a target's saved results, cache_root() / "results" / result_key(name),
+    where name is target_files(text)["name"] -> str."""
+    return results.safe_name(name)
+
+
+def preload_results(paths):
+    """Read saved-result files (*.pkl in a result_key folder) into memory, so the next view
+    that needs them is instant. Disk only: never computes or downloads -> how many were read."""
+    return results.preload(paths)
+
+
+def catalogue_names():
+    """The display names of the targets known without a name lookup (the five test targets);
+    each is also the name of its frame list, cache_root() / "frames" / f"{name}.ecsv" -> list."""
+    from .targets import DISPLAY
+    return list(DISPLAY.values())
+
+
+def parse_cutout_name(filename):
+    """The parts of a downloaded image's file name (cache_root() / "cutouts" / filename)
+    -> dict of strings: stem (the frame, as in its access_url without ".fits"), ra, dec
+    (the cutout centre, degrees), size (arcmin); None for any other file."""
+    m = cachefiles.CUTOUT_RE.match(filename)
+    return m.groupdict() if m else None
